@@ -1,6 +1,5 @@
 ﻿using ExtendedHttpClient.Common.Exceptions;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 using System;
 using System.Linq;
 using System.Net.Http;
@@ -13,9 +12,9 @@ namespace ExtendedHttpClient.Common.Strategies
     {
         private JsonSerializerSettings JsonSerializerSettings { get; set; }
 
-
+        
         public JsonResponseStrategy(bool isSnakeCase = false)
-            : this(isSnakeCase ? DefaultSnakeCaseJsonSerializerSettings() : DefaultJsonSerializerSettings()) { }
+            : this(isSnakeCase ? JsonSerializerSettingsHelper.SnakeCaseJsonSerializerSettings : JsonSerializerSettingsHelper.JsonSerializerSettings) { }
 
         public JsonResponseStrategy(JsonSerializerSettings jsonSerializerSettings)
         {
@@ -23,29 +22,18 @@ namespace ExtendedHttpClient.Common.Strategies
         }
 
 
-        private static JsonSerializerSettings DefaultSnakeCaseJsonSerializerSettings()
-        {
-            return new JsonSerializerSettings
-            {
-                ContractResolver = new DefaultContractResolver
-                {
-                    NamingStrategy = new SnakeCaseNamingStrategy()
-                }
-            };
-        }
-
-        private static JsonSerializerSettings DefaultJsonSerializerSettings()
-        {
-            return new JsonSerializerSettings();
-        }
-
-
         public virtual async Task<OperationResult<T>> GetOperationResultAsync<T>(HttpResponseMessage response, CancellationToken ct)
         {
             var result = new OperationResult<T>();
+            result.RawRequest = response.RequestMessage.ToString();
+            await GetOperationResultAsync(response, result, ct);
+            return result;
+        }
 
-            result.StatusCode = response.StatusCode;
-            result.Headers = response.Content?.Headers?.ToArray();
+        public async Task GetOperationResultAsync<T>(HttpResponseMessage response, OperationResult<T> operationResult, CancellationToken ct)
+        {
+            operationResult.StatusCode = response.StatusCode;
+            operationResult.Headers = response.Content?.Headers?.ToArray();
 
             if (!response.IsSuccessStatusCode)
             {
@@ -54,9 +42,9 @@ namespace ExtendedHttpClient.Common.Strategies
                 {
                     rawResponse = await response.Content.ReadAsStringAsync();
                 }
-                result.Exception = new RequestException(response.RequestMessage.ToString(), rawResponse, response.StatusCode);
-                result.RawResponse = rawResponse;
-                return result;
+                operationResult.Exception = new RequestException(response.RequestMessage.ToString(), rawResponse, response.StatusCode);
+                operationResult.RawResponse = rawResponse;
+                return;
             }
 
             var mediaType = response.Content?.Headers?.ContentType?.MediaType.ToLower();
@@ -72,37 +60,36 @@ namespace ExtendedHttpClient.Common.Strategies
                         try
                         {
                             var content = await response.Content.ReadAsStringAsync();
-                            result.RawResponse = content;
+                            operationResult.RawResponse = content;
                             if (string.IsNullOrEmpty(content))
                             {
-                                result.Result = default(T);
+                                operationResult.Result = default(T);
                             }
                             else
                             {
                                 if (content is T)
                                 {
-                                    result.Result = (T)(object)content;
+                                    operationResult.Result = (T)(object)content;
                                 }
                                 else
                                 {
-                                    result.Result = JsonConvert.DeserializeObject<T>(content, JsonSerializerSettings);
+                                    operationResult.Result = JsonConvert.DeserializeObject<T>(content, JsonSerializerSettings);
                                 }
                             }
                         }
                         catch (Exception e)
                         {
-                            result.Exception = e;
+                            operationResult.Exception = e;
                         }
                         break;
                     }
                     default:
                     {
-                        result.Exception = new InvalidCastException(mediaType);
+                        operationResult.Exception = new InvalidCastException(mediaType);
                         break;
                     }
                 }
             }
-            return result;
         }
     }
 }
