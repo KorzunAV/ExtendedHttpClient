@@ -121,8 +121,12 @@ namespace ExtendedHttpClient.Strategies
                 if (fromQueryAttribute == null)
                     continue;
 
-                var properties = GetProperties(prop.PropertyType);
                 var qValue = prop.GetValue(container);
+                if (qValue == null)
+                    break;
+
+                var properties = GetProperties(prop.PropertyType);
+                
                 foreach (var property in properties)
                 {
                     var pName = property.GetCustomAttribute<JsonPropertyAttribute>();
