@@ -1,6 +1,7 @@
 ﻿using ExtendedHttpClient.Common.Exceptions;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
@@ -10,15 +11,24 @@ namespace ExtendedHttpClient.Common.Strategies
 {
     public class JsonResponseStrategy : IResponseStrategy
     {
+        public HashSet<string> SupportedMimiTypes { get; private set; }
+
         private JsonSerializerSettings JsonSerializerSettings { get; set; }
 
-        
+
         public JsonResponseStrategy(bool isSnakeCase = false)
             : this(isSnakeCase ? JsonSerializerSettingsHelper.SnakeCaseJsonSerializerSettings : JsonSerializerSettingsHelper.JsonSerializerSettings) { }
 
         public JsonResponseStrategy(JsonSerializerSettings jsonSerializerSettings)
         {
             JsonSerializerSettings = jsonSerializerSettings;
+            SupportedMimiTypes = new HashSet<string>
+            {
+                "text/plain",
+                "text/html",
+                "text/javascript",
+                "application/json",
+            };
         }
 
 
@@ -51,43 +61,32 @@ namespace ExtendedHttpClient.Common.Strategies
 
             if (mediaType != null)
             {
-                switch (mediaType)
+                if (!SupportedMimiTypes.Contains(mediaType))
+                    operationResult.Exception = new InvalidCastException(mediaType);
+                
+                try
                 {
-                    case "text/plain":
-                    case "application/json":
-                    case "text/html":
+                    var content = await response.Content.ReadAsStringAsync();
+                    operationResult.RawResponse = content;
+                    if (string.IsNullOrEmpty(content))
                     {
-                        try
-                        {
-                            var content = await response.Content.ReadAsStringAsync();
-                            operationResult.RawResponse = content;
-                            if (string.IsNullOrEmpty(content))
-                            {
-                                operationResult.Result = default(T);
-                            }
-                            else
-                            {
-                                if (content is T)
-                                {
-                                    operationResult.Result = (T)(object)content;
-                                }
-                                else
-                                {
-                                    operationResult.Result = JsonConvert.DeserializeObject<T>(content, JsonSerializerSettings);
-                                }
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            operationResult.Exception = e;
-                        }
-                        break;
+                        operationResult.Result = default(T);
                     }
-                    default:
+                    else
                     {
-                        operationResult.Exception = new InvalidCastException(mediaType);
-                        break;
+                        if (content is T)
+                        {
+                            operationResult.Result = (T)(object)content;
+                        }
+                        else
+                        {
+                            operationResult.Result = JsonConvert.DeserializeObject<T>(content, JsonSerializerSettings);
+                        }
                     }
+                }
+                catch (Exception e)
+                {
+                    operationResult.Exception = e;
                 }
             }
         }
