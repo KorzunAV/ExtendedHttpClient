@@ -2,6 +2,7 @@ using System;
 
 namespace ExtendedHttpClient.Common.Attributes
 {
+    [AttributeUsage(AttributeTargets.Property)]
     public class HeaderAttribute : Attribute
     {
         public string HeaderKey { get; }

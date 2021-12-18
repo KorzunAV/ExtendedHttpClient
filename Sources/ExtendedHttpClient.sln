@@ -5,9 +5,11 @@ VisualStudioVersion = 16.0.30114.105
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExtendedHttpClient.Common", "ExtendedHttpClient.Common\ExtendedHttpClient.Common.csproj", "{DAC25B7E-B0BF-44AF-8FBE-0B959140F08B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExtendedHttpClient", "ExtendedHttpClient\ExtendedHttpClient.csproj", "{93524F75-2CCD-4015-8FC1-2165C43B719E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExtendedHttpClient", "ExtendedHttpClient\ExtendedHttpClient.csproj", "{93524F75-2CCD-4015-8FC1-2165C43B719E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExtendedHttpClient.Tests", "ExtendedHttpClient.Tests\ExtendedHttpClient.Tests.csproj", "{136145E8-B7B6-43FE-9FB8-8E5911106FDE}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{34C3ECD9-3F5F-46B9-8E32-025C57B22D69}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,6 +32,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{136145E8-B7B6-43FE-9FB8-8E5911106FDE} = {34C3ECD9-3F5F-46B9-8E32-025C57B22D69}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {423120C3-494A-4B32-A525-17E26466506E}

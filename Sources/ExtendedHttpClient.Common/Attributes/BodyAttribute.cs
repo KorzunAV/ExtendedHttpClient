@@ -7,6 +7,7 @@ namespace ExtendedHttpClient.Common.Attributes
         ApplicationJson,
     }
 
+    [AttributeUsage(AttributeTargets.Property)]
     public class BodyAttribute : Attribute
     {
         public BodyMimeType Type { get; }

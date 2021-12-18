@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 
 namespace ExtendedHttpClient
 {
+    [Obsolete("Try to use HttpClientExtension")]
     public class ExtendedHttpClient : HttpClient
     {
         public int PollyRetryCount { get; set; }
